@@ -76,7 +76,8 @@ export const ParentModal = ({ isOpen, onClose, onSuccess, student }: ParentModal
         fatherName: formData.fatherName.trim(),
         motherName: formData.motherName?.trim() || undefined,
         contactNumber: formData.contactNumber.trim(),
-        annualIncome: formData.annualIncome ? Number(formData.annualIncome) : 0
+        annualIncome: formData.annualIncome ? Number(formData.annualIncome) : 0,
+        email: formData.email?.trim() || undefined
       });
       onSuccess();
       onClose();

@@ -25,8 +25,9 @@ import { ProfileScreen } from '../screens/ProfileScreen';
 import { AnnouncementsScreen } from '../screens/AnnouncementsScreen';
 import { HomeworkScreen } from '../screens/HomeworkScreen';
 import { TimetableScreen } from '../screens/TimetableScreen';
+import { GatePassScreen } from '../screens/GatePassScreen';
 
-export type TabName = 'Home' | 'Attendance' | 'Academic' | 'Fees' | 'Transport' | 'Leave' | 'Profile' | 'Announcements' | 'Homework' | 'Timetable';
+export type TabName = 'Home' | 'Attendance' | 'Academic' | 'Fees' | 'Transport' | 'Leave' | 'Profile' | 'Announcements' | 'Homework' | 'Timetable' | 'GatePass';
 
 export const RootNavigator = () => {
   const { user, selectedStudent, children: childList, setSelectedStudent, logout, isLoading } = useAuth();
@@ -74,6 +75,8 @@ export const RootNavigator = () => {
         return <HomeworkScreen />;
       case 'Timetable':
         return <TimetableScreen />;
+      case 'GatePass':
+        return <GatePassScreen />;
       default:
         return <DashboardScreen navigation={{ navigate: navigateTo }} />;
     }
@@ -224,6 +227,20 @@ export const RootNavigator = () => {
 
                   {/* Remaining Application Features */}
                   <Text style={[styles.drawerSectionTitle, { marginTop: 24 }]}>MORE MODULES</Text>
+
+                  <TouchableOpacity
+                    style={styles.drawerItem}
+                    onPress={() => navigateTo('GatePass')}
+                  >
+                    <View style={[styles.drawerItemIconBox, { backgroundColor: '#F3E8FF' }]}>
+                      <Text style={styles.drawerItemIcon}>🎫</Text>
+                    </View>
+                    <View style={styles.drawerItemTextContainer}>
+                      <Text style={styles.drawerItemTitle}>Digital Gate Pass & QR</Text>
+                      <Text style={styles.drawerItemSubtitle}>Early exit authorization & QR code</Text>
+                    </View>
+                    <Text style={styles.drawerItemArrow}>›</Text>
+                  </TouchableOpacity>
 
                   <TouchableOpacity
                     style={styles.drawerItem}

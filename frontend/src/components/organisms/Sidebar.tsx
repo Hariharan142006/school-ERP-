@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Users, BookOpen, UserCheck, 
   Wallet, FileText, CalendarCheck, Bus, Library, 
   Home, MessageSquare, Settings, CheckSquare,
-  Award, Briefcase, GraduationCap, LogOut, History, Package, Ticket
+  Award, Briefcase, GraduationCap, LogOut, History, Package, Ticket, Scan
 } from 'lucide-react';
 
 // ... (keep the same menu arrays)
@@ -27,6 +27,7 @@ const adminMenu: SidebarItem[] = [
   { name: 'Academic', href: '/admin/academic', icon: BookOpen },
   { name: 'Academic Calendar', href: '/admin/academic/calendar', icon: CalendarCheck },
   { name: 'Timetable Hub', href: '/admin/academic/timetable', icon: CalendarCheck },
+  { name: 'Homework', href: '/admin/homework', icon: BookOpen },
   { name: 'Student', href: '/admin/students', icon: GraduationCap },
   { name: 'Parent Management', href: '/admin/parents', icon: Users },
   { name: 'Staff', href: '/admin/staff', icon: Briefcase },
@@ -37,6 +38,7 @@ const adminMenu: SidebarItem[] = [
   { name: 'Announcements', href: '/admin/communication', icon: MessageSquare },
   { name: 'Circular', href: '/admin/circular', icon: FileText },
   { name: 'Gate Pass', href: '/admin/gate-pass', icon: Ticket },
+  { name: 'Gate Scanner', href: '/admin/gate-scanner', icon: Scan },
   { name: 'Visitor Module', href: '/admin/visitor', icon: Users },
   { name: 'Transport', href: '/admin/transport', icon: Bus },
   { name: 'Hostel', href: '/admin/hostel', icon: Home },
@@ -84,6 +86,7 @@ const parentMenu: SidebarItem[] = [
   { name: 'Fees & Payments', href: '/parent/fees', icon: Wallet },
   { name: 'Bus Tracking', href: '/parent/bus', icon: Bus },
   { name: 'Announcements', href: '/parent/announcements', icon: MessageSquare },
+  { name: 'Gate Pass', href: '/parent/gate-pass', icon: Ticket },
   { name: 'Leave Requests', href: '/parent/leave', icon: CheckSquare },
 ];
 

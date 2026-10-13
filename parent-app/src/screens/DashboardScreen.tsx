@@ -265,6 +265,7 @@ export const DashboardScreen = ({ navigation }: any) => {
         <View style={styles.moduleGrid}>
           {[
             { label: 'Attendance', icon: '📆', screen: 'Attendance', color: '#3B82F6' },
+            { label: 'Gate Pass', icon: '🎫', screen: 'GatePass', color: '#7C3AED' },
             { label: 'Term Fees', icon: '💳', screen: 'Fees', color: '#10B981' },
             { label: 'Academic', icon: '📖', screen: 'Academic', color: '#8B5CF6' },
             { label: 'Bus Tracking', icon: '🚌', screen: 'Transport', color: '#F59E0B' },
@@ -306,17 +307,30 @@ export const DashboardScreen = ({ navigation }: any) => {
               </Text>
             </View>
           ) : (
-            notices.map((n, i) => (
-              <View key={i} style={styles.noticeItem}>
-                <View style={styles.noticeHeader}>
-                  <Text style={styles.noticeTitle}>{n.title}</Text>
-                  <Text style={styles.noticeDate}>
-                    {new Date(n.date || n.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                  </Text>
+            notices.map((n, i) => {
+              const p = (n.priority || 'Normal').toLowerCase();
+              const badgeBg = p === 'emergency' ? '#FEE2E2' : p === 'urgent' ? '#FEF3C7' : p === 'important' ? '#EEF2FF' : '#F1F5F9';
+              const badgeColor = p === 'emergency' ? '#DC2626' : p === 'urgent' ? '#B45309' : p === 'important' ? '#4338CA' : '#475569';
+              const badgeLabel = p === 'emergency' ? '🚨 EMERGENCY' : p === 'urgent' ? '⚠️ URGENT' : p === 'important' ? '⭐ IMPORTANT' : '📢 NORMAL';
+              const leftBorder = p === 'emergency' ? '#EF4444' : p === 'urgent' ? '#F59E0B' : p === 'important' ? '#4F46E5' : '#CBD5E1';
+
+              return (
+                <View key={i} style={[styles.noticeItem, { borderLeftColor: leftBorder, borderLeftWidth: 3, paddingLeft: 8 }]}>
+                  <View style={styles.noticeHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                      <View style={{ backgroundColor: badgeBg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+                        <Text style={{ color: badgeColor, fontSize: 9, fontWeight: '800' }}>{badgeLabel}</Text>
+                      </View>
+                      <Text style={styles.noticeTitle} numberOfLines={1}>{n.title}</Text>
+                    </View>
+                    <Text style={styles.noticeDate}>
+                      {new Date(n.date || n.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    </Text>
+                  </View>
+                  <Text style={styles.noticeContent} numberOfLines={2}>{n.content}</Text>
                 </View>
-                <Text style={styles.noticeContent}>{n.content}</Text>
-              </View>
-            ))
+              );
+            })
           )}
         </View>
       </ScrollView>

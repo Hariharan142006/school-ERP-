@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 // Live Vercel Cloud Backend URL
-export const BASE_URL = 'https://backend-lake-chi-58.vercel.app';
+export const BASE_URL = 'https://backend-two-blush-54.vercel.app';
 
 const api = axios.create({
   baseURL: BASE_URL,

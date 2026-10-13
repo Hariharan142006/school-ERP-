@@ -24,11 +24,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   setAuth: (user, token) => {
     localStorage.setItem('user', JSON.stringify(user));
     localStorage.setItem('token', token);
+    document.cookie = 'token=' + token + '; path=/; max-age=86400; SameSite=Lax';
     set({ user, token });
   },
   logout: () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    document.cookie = 'token=; Max-Age=0; path=/;';
     // Call API to logout and clear cookie if needed
     set({ user: null, token: null });
   }

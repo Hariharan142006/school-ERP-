@@ -143,7 +143,7 @@ export default function LandingPage() {
             className="w-full max-w-2xl relative"
           >
             {/* LAPTOP BEZEL FRAME */}
-            <div className="bg-slate-900 border-[7px] border-slate-800 rounded-[28px] shadow-2xl p-3 relative overflow-hidden">
+            <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="bg-slate-900 border-[7px] border-slate-800 rounded-[28px] shadow-2xl p-3 relative overflow-hidden">
               
               {/* Webcam Notch Dot */}
               <div className="w-2.5 h-2.5 rounded-full bg-slate-700 mx-auto mb-2 relative z-20 flex items-center justify-center">
@@ -180,7 +180,16 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  <form onSubmit={handleLogin} className="space-y-4">
+                  <motion.form 
+                    onSubmit={handleLogin} 
+                    className="space-y-4"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      hidden: { opacity: 0 },
+                      visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+                    }}
+                  >
                     {error && (
                       <motion.div 
                         initial={{ opacity: 0, y: -5 }}
@@ -192,7 +201,7 @@ export default function LandingPage() {
                       </motion.div>
                     )}
                     
-                    <div>
+                    <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
                       <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1.5" htmlFor="username">
                         Username / Login ID
                       </label>
@@ -203,11 +212,12 @@ export default function LandingPage() {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
+                        suppressHydrationWarning
                         className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-900 outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 transition-all shadow-inner"
                       />
-                    </div>
+                    </motion.div>
                     
-                    <div>
+                    <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
                       <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1.5" htmlFor="password">
                         Password
                       </label>
@@ -219,32 +229,38 @@ export default function LandingPage() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
+                          suppressHydrationWarning
                           className="w-full px-3.5 py-2.5 pr-10 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-900 outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 transition-all shadow-inner"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
+                          suppressHydrationWarning
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                         >
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
-                    </div>
+                    </motion.div>
                     
-                    {/* SOFT UI INDIGO/VIOLET BUTTON */}
-                    <button 
+                    {/* FLUID SPRING MOTION BUTTON */}
+                    <motion.button 
+                      variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+                      whileHover={{ scale: 1.015 }}
+                      whileTap={{ scale: 0.97 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 15 }}
                       type="submit" 
                       disabled={loading}
-                      className="w-full py-3.5 mt-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-extrabold text-xs shadow-lg shadow-indigo-500/25 border border-indigo-400/20 transition-all hover:scale-[1.015] active:scale-[0.97] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                      className="w-full py-3.5 mt-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-extrabold text-xs shadow-lg shadow-indigo-500/25 border border-indigo-400/20 transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
                     >
                       <span>{loading ? 'Authenticating...' : 'Sign In To Dashboard'}</span>
                       {!loading && <ArrowRight className="w-4 h-4 text-white" />}
-                    </button>
-                  </form>
+                    </motion.button>
+                  </motion.form>
 
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* LAPTOP KEYBOARD BASE STAND */}
             <div className="w-[106%] -ml-[3%] h-4 bg-gradient-to-r from-slate-400 via-slate-200 to-slate-400 rounded-b-2xl shadow-2xl relative border-t border-slate-500">

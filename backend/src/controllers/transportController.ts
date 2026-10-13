@@ -127,6 +127,8 @@ export const removeStudent = async (req: Request, res: Response): Promise<void> 
 
 import TransportLogModel from '../models/TransportLog';
 import NoticeModel from '../models/Notice';
+import StudentProfileModel from '../models/StudentProfile';
+import { sendEmail, sendSMS } from '../services/notificationService';
 
 export const notifyBusStatus = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -182,6 +184,39 @@ export const notifyBusStatus = async (req: Request, res: Response): Promise<void
         postedBy: (req as any).user?.id || (req as any).user?._id
       });
       await notice.save();
+
+      if (vehicle.students && vehicle.students.length > 0) {
+        const profiles = await StudentProfileModel.find({ _id: { $in: vehicle.students } }).populate('user', 'email username');
+        for (const profile of profiles) {
+          const studentUser = profile.user as any;
+          const phone = profile.contactNumber;
+          const email = studentUser?.email;
+
+          const htmlContent = `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+  <div style="background-color: #4f46e5; color: white; padding: 20px; text-align: center;">
+    <h2 style="margin: 0;">🚌 Transport Alert</h2>
+  </div>
+  <div style="padding: 20px; background-color: #ffffff;">
+    <p style="font-size: 16px; color: #333;">Dear Parent/Guardian,</p>
+    <p style="font-size: 16px; color: #333;">This is an automated notification regarding the school transport for your child.</p>
+    
+    <div style="background-color: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
+      <p style="margin: 5px 0;"><strong>Status:</strong> <span style="color: ${eventType === 'REACHED_SCHOOL' ? '#059669' : '#d97706'}">${eventType === 'REACHED_SCHOOL' ? 'Reached School' : 'Departed from School'}</span></p>
+      <p style="margin: 5px 0;"><strong>Bus Details:</strong> ${busLabel}</p>
+      <p style="margin: 5px 0;"><strong>Route:</strong> ${vehicle.route}</p>
+      <p style="margin: 5px 0;"><strong>Time:</strong> ${new Date().toLocaleString('en-IN')}</p>
+    </div>
+    
+    <p style="font-size: 14px; color: #666; margin-top: 30px;">Thank you,<br><strong>Aathithiya School ERP</strong></p>
+  </div>
+</div>
+          `;
+
+          if (email) sendEmail(email, noticeTitle, htmlContent).catch(() => {});
+          if (phone) sendSMS(phone, noticeTitle + ': ' + noticeContent).catch(() => {});
+        }
+      }
     } catch (e) {
       console.error('Failed to create parent notice for transport event:', e);
     }
@@ -214,5 +249,6 @@ export const getTransportLogs = async (req: Request, res: Response): Promise<voi
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
 
 

@@ -3,7 +3,7 @@ import { Button } from '@/components/atoms/Button';
 import { Plus, Trash2, Edit, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '@/lib/axios';
-import { RoleModal } from './RoleModal';
+import { RoleModal, SECTIONS } from './RoleModal';
 
 export const RolesTab = () => {
   const [roles, setRoles] = useState<any[]>([]);
@@ -78,11 +78,16 @@ export const RolesTab = () => {
               <div className="flex-1">
                 <p className="text-sm font-semibold text-slate-500 mb-2">Accessible Sections ({role.permissions?.length || 0})</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {role.permissions?.slice(0, 5).map((p: string) => (
-                    <span key={p} className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md">{p.split('/').pop()}</span>
-                  ))}
-                  {(role.permissions?.length || 0) > 5 && (
-                    <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md">+{role.permissions.length - 5} more</span>
+                  {role.permissions?.slice(0, 6).map((p: string) => {
+                    const label = SECTIONS.find(s => s.id === p)?.label || p.split('/').pop() || p;
+                    return (
+                      <span key={p} className="px-2 py-1 bg-purple-50 text-purple-700 text-xs font-semibold rounded-md border border-purple-100">
+                        {label}
+                      </span>
+                    );
+                  })}
+                  {(role.permissions?.length || 0) > 6 && (
+                    <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md">+{role.permissions.length - 6} more</span>
                   )}
                 </div>
               </div>

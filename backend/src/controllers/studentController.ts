@@ -358,19 +358,38 @@ export const addOrUpdateParent = async (req: Request, res: Response): Promise<vo
     let parentUser = await UserModel.findOne({ username: cleanContact });
 
     if (!parentUser) {
+      const targetEmail = (email && email.trim()) ? email.trim().toLowerCase() : `${cleanContact}@parent.school.com`;
+      const emailConflict = await UserModel.findOne({ email: targetEmail });
+      if (emailConflict) {
+        res.status(400).json({ 
+          message: `The email "${targetEmail}" is already registered to user "${emailConflict.name || emailConflict.username}". Please provide a unique email address or leave it blank.` 
+        });
+        return;
+      }
+
       // Create new Parent User: ID = Phone No, Password = Phone No
       parentUser = new UserModel({
         name: fatherName ? fatherName.trim() : (motherName ? motherName.trim() : 'Parent'),
         username: cleanContact,
         password: cleanContact,
-        email: email ? email.trim() : `${cleanContact}@parent.school.com`,
+        email: targetEmail,
         role: UserRole.PARENT
       });
       await parentUser.save();
     } else {
       // Update existing Parent User name/email if provided
       if (fatherName) parentUser.name = fatherName.trim();
-      if (email) parentUser.email = email.trim();
+      if (email && email.trim()) {
+        const targetEmail = email.trim().toLowerCase();
+        const emailConflict = await UserModel.findOne({ email: targetEmail, _id: { $ne: parentUser._id } });
+        if (emailConflict) {
+          res.status(400).json({ 
+            message: `The email "${targetEmail}" is already registered to user "${emailConflict.name || emailConflict.username}". Please provide a unique email address or leave it blank.` 
+          });
+          return;
+        }
+        parentUser.email = targetEmail;
+      }
       await parentUser.save();
     }
 
@@ -394,7 +413,16 @@ export const addOrUpdateParent = async (req: Request, res: Response): Promise<vo
 
     res.json({ message: 'Parent added and credentials generated successfully!', student: updated, parentUser });
   } catch (error: any) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error in addOrUpdateParent:', error);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || 'email or username';
+      res.status(400).json({ 
+        message: `This ${field} is already in use by another user account. Please use a unique value or leave email blank.`,
+        error: error.message 
+      });
+      return;
+    }
+    res.status(500).json({ message: error.message || 'Server error', error: error.message });
   }
 };
 

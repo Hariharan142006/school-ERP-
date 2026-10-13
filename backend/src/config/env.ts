@@ -4,6 +4,8 @@ const optionalEnvVars = {
   JWT_SECRET: 'change-this-in-production',
   PORT: '5000',
   NODE_ENV: 'development',
+  BREVO_API_KEY: '',
+  BREVO_SENDER_EMAIL: '',
 } as const;
 
 export const validateEnv = () => {
@@ -25,4 +27,7 @@ export const env = {
   get JWT_SECRET() { return process.env.JWT_SECRET || 'change-this-in-production'; },
   get PORT() { return parseInt(process.env.PORT || '5000'); },
   get NODE_ENV() { return process.env.NODE_ENV || 'development'; },
+  get BREVO_API_KEY() { return process.env.BREVO_API_KEY || ''; },
+  get BREVO_SENDER_EMAIL() { return process.env.BREVO_SENDER_EMAIL || ''; },
 };
+

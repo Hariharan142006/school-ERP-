@@ -25,7 +25,11 @@ export const getNotices = async (req: Request, res: Response): Promise<void> => 
       query = { $or: orConditions };
     }
     
-    const notices = await NoticeModel.find(query).sort({ date: -1 }).populate('targetClass', 'name section').lean();
+    const notices = await NoticeModel.find(query)
+      .sort({ date: -1 })
+      .populate('targetClass', 'name section')
+      .populate('postedBy', 'name role')
+      .lean();
     res.json(notices);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
@@ -34,11 +38,30 @@ export const getNotices = async (req: Request, res: Response): Promise<void> => 
 
 export const createNotice = async (req: Request, res: Response): Promise<void> => {
   try {
-    const newNotice = new NoticeModel(req.body);
+    const rawPriority = req.body.priority ? String(req.body.priority) : 'Normal';
+    const normalizedPriority = rawPriority.charAt(0).toUpperCase() + rawPriority.slice(1).toLowerCase();
+    const validPriorities = ['Normal', 'Important', 'Urgent', 'Emergency'];
+    const priority = validPriorities.includes(normalizedPriority) ? normalizedPriority : 'Normal';
+
+    const noticeData = {
+      ...req.body,
+      priority,
+      postedBy: req.body.postedBy || (req as any).user?.id
+    };
+
+    const newNotice = new NoticeModel(noticeData);
     await newNotice.save();
-    const populated = newNotice;
+    const populated = await newNotice.populate([
+      { path: 'targetClass', select: 'name section' },
+      { path: 'postedBy', select: 'name role' }
+    ]);
     const io = req.app.get('io');
-    if (io) io.emit('notice_created', populated);
+    if (io) {
+      io.emit('notice_created', populated);
+      if (populated.priority === 'Emergency') {
+        io.emit('emergency_alert', populated);
+      }
+    }
 
     res.status(201).json(populated);
   } catch (error: any) {

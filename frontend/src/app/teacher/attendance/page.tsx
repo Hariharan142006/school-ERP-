@@ -63,8 +63,13 @@ export default function TeacherAttendancePage() {
     setAttendanceState(prev => ({ ...prev, [studentId]: status }));
   };
 
-  const handleSave = async () => {
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleSaveClick = () => setShowConfirm(true);
+
+  const confirmSave = async () => {
     setSaving(true);
+    setShowConfirm(false);
     try {
       const records = Object.entries(attendanceState).map(([studentId, status]) => ({
         student: studentId,
@@ -223,7 +228,7 @@ export default function TeacherAttendancePage() {
           {/* Save Button moved to bottom */}
           {activeTab === 'mark' && studentsList.length > 0 && (
             <div className="px-6 py-5 border-t border-slate-100 bg-slate-50 flex justify-end">
-              <Button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-8 py-3 text-base">
+              <Button onClick={handleSaveClick} disabled={saving} className="flex items-center gap-2 px-8 py-3 text-base">
                 <Save className="w-5 h-5" /> {saving ? 'Saving...' : 'Save Attendance'}
               </Button>
             </div>
@@ -239,3 +244,4 @@ export default function TeacherAttendancePage() {
     </div>
   );
 }
+
