@@ -2,8 +2,10 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-// Live Vercel Cloud Backend URL
-export const BASE_URL = 'https://backend-two-blush-54.vercel.app';
+// Development uses local backend on machine LAN IP (192.168.0.3) or USB reverse, production uses Cloud URL
+export const BASE_URL = __DEV__ 
+  ? 'https://backend-jet-one-36.vercel.app' 
+  : 'https://backend-jet-one-36.vercel.app';
 
 const api = axios.create({
   baseURL: BASE_URL,

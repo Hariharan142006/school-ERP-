@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, Edit, Trash2, CheckCircle, XCircle, Clock, Camera, 
   QrCode, ShieldCheck, UserCheck, Search, Printer, 
-  X, Eye
+  X, Eye, Phone
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -784,7 +784,7 @@ export default function GatePassPage() {
                             <div className="font-bold text-slate-900">{pass.personName}</div>
                             <div className="text-xs text-slate-500">
                               {pass.relationship && <span className="font-medium mr-1.5">{pass.relationship}</span>}
-                              {pass.contactNumber && <span>📞 {pass.contactNumber}</span>}
+                              {pass.contactNumber && <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3 text-slate-400" />{pass.contactNumber}</span>}
                             </div>
                           </div>
                         </div>

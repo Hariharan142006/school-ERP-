@@ -1,11 +1,17 @@
 import { Request, Response } from 'express';
 import TimetableModel from '../models/Timetable';
+import { resolveClassIds } from '../utils/classResolver';
 
 export const getTimetable = async (req: Request, res: Response): Promise<void> => {
   try {
     const { classId } = req.query;
     let query: any = {};
-    if (classId) query.enrolledClass = classId;
+    if (classId) {
+      const resolved = await resolveClassIds(classId);
+      if (resolved.length > 0) {
+        query.enrolledClass = resolved.length === 1 ? resolved[0] : { $in: resolved };
+      }
+    }
     
     const timetables = await TimetableModel.find(query)
       .populate('enrolledClass', 'name section')
@@ -14,7 +20,8 @@ export const getTimetable = async (req: Request, res: Response): Promise<void> =
       .sort({ dayOfWeek: 1 });
       
     res.json(timetables);
-  } catch (error) {
+  } catch (error: any) {
+    console.error('getTimetable error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

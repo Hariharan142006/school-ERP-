@@ -213,9 +213,9 @@ export const RoleModal = ({ isOpen, onClose, onSuccess, mode, initialData }: Rol
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     >
-                      ✕
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>

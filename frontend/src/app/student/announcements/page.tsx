@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import { motion } from 'framer-motion';
-import { Bell, CalendarClock, Megaphone } from 'lucide-react';
+import { Bell, CalendarClock, Megaphone, AlertTriangle, AlertCircle, Sparkles, Info } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
 export default function StudentAnnouncementsPage() {
@@ -32,13 +32,13 @@ export default function StudentAnnouncementsPage() {
     const p = priority.toLowerCase();
     switch (p) {
       case 'emergency':
-        return { label: 'EMERGENCY', badge: 'bg-rose-100 text-rose-700 border-rose-300 border font-extrabold', strip: 'bg-rose-600', icon: '🚨' };
+        return { label: 'EMERGENCY', badge: 'bg-rose-100 text-rose-700 border-rose-300 border font-extrabold', strip: 'bg-rose-600', Icon: AlertTriangle };
       case 'urgent':
-        return { label: 'URGENT', badge: 'bg-amber-100 text-amber-800 border-amber-300 border font-bold', strip: 'bg-amber-500', icon: '⚠️' };
+        return { label: 'URGENT', badge: 'bg-amber-100 text-amber-800 border-amber-300 border font-bold', strip: 'bg-amber-500', Icon: AlertCircle };
       case 'important':
-        return { label: 'IMPORTANT', badge: 'bg-indigo-100 text-indigo-700 border-indigo-200 border font-bold', strip: 'bg-indigo-600', icon: '⭐' };
+        return { label: 'IMPORTANT', badge: 'bg-indigo-100 text-indigo-700 border-indigo-200 border font-bold', strip: 'bg-indigo-600', Icon: Sparkles };
       default:
-        return { label: 'NORMAL', badge: 'bg-slate-100 text-slate-700 border-slate-200 border font-semibold', strip: 'bg-slate-400', icon: '📢' };
+        return { label: 'NORMAL', badge: 'bg-slate-100 text-slate-700 border-slate-200 border font-semibold', strip: 'bg-slate-400', Icon: Info };
     }
   };
 
@@ -61,6 +61,7 @@ export default function StudentAnnouncementsPage() {
         ) : (
           notices.map((notice, i) => {
             const pInfo = formatPriority(notice.priority);
+            const PriorityIcon = pInfo.Icon;
             return (
               <motion.div 
                 key={notice._id}
@@ -69,8 +70,8 @@ export default function StudentAnnouncementsPage() {
               >
                 <div className={`absolute top-0 left-0 w-1.5 h-full ${pInfo.strip}`}></div>
                 <div className="flex items-center gap-2.5 mb-3 flex-wrap">
-                  <span className={`px-2.5 py-1 rounded-lg text-xs flex items-center gap-1 ${pInfo.badge}`}>
-                    <span>{pInfo.icon}</span>
+                  <span className={`px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 ${pInfo.badge}`}>
+                    <PriorityIcon className="w-3.5 h-3.5" />
                     <span>{pInfo.label}</span>
                   </span>
                   <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold">

@@ -1,27 +1,26 @@
 import { Request, Response } from 'express';
 import NoticeModel from '../models/Notice';
+import { resolveClassIds } from '../utils/classResolver';
 
 export const getNotices = async (req: Request, res: Response): Promise<void> => {
   try {
     const { targetAudience, classId } = req.query;
     let query: any = {};
     
-    if (targetAudience || classId) {
+    const resolvedClassIds = classId ? await resolveClassIds(classId) : [];
+
+    if (targetAudience || resolvedClassIds.length > 0) {
       const orConditions: any[] = [];
       if (targetAudience) {
-         orConditions.push({ targetAudience: { $in: [targetAudience, 'All', 'ALL'] } });
+        orConditions.push({ targetAudience: { $in: [targetAudience, 'All', 'ALL'] } });
       } else {
-         orConditions.push({ targetAudience: { $in: ['All', 'ALL'] } });
+        orConditions.push({ targetAudience: { $in: ['All', 'ALL'] } });
       }
-      
-      if (classId && classId !== 'undefined' && classId !== 'null') {
-         if (Array.isArray(classId)) {
-            const validIds = classId.filter(id => id && id !== 'undefined' && id !== 'null');
-            if (validIds.length > 0) orConditions.push({ targetClass: { $in: validIds } });
-         } else {
-            orConditions.push({ targetClass: classId });
-         }
+
+      if (resolvedClassIds.length > 0) {
+        orConditions.push({ targetClass: { $in: resolvedClassIds } });
       }
+
       query = { $or: orConditions };
     }
     
@@ -31,7 +30,8 @@ export const getNotices = async (req: Request, res: Response): Promise<void> => 
       .populate('postedBy', 'name role')
       .lean();
     res.json(notices);
-  } catch (error) {
+  } catch (error: any) {
+    console.error('getNotices error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import { Button } from '@/components/atoms/Button';
-import { Calendar, Save, Trash2, Plus, Clock, BookOpen, Settings as SettingsIcon, Layout, UserPlus, Users, Eye, Edit2, X } from 'lucide-react';
+import { Calendar, Save, Trash2, Plus, Clock, BookOpen, Settings as SettingsIcon, Layout, UserPlus, Users, Eye, Edit2, X, AlertTriangle, Utensils, Coffee } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -520,7 +520,7 @@ export default function AdminTimetablePage() {
                     <div key={idx} className="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
                       <div className="bg-indigo-100 text-indigo-700 font-bold w-12 h-10 flex items-center justify-center rounded-lg">
                         {!period.type || period.type === 'academic' ? getAcademicPeriodLabel(structurePeriods, idx) : (
-                          period.type === 'lunch' ? '🍜' : period.type === 'break' ? '☕' : '🍳'
+                          period.type === 'lunch' ? <Utensils className="w-4 h-4 text-indigo-600" /> : <Coffee className="w-4 h-4 text-amber-600" />
                         )}
                       </div>
                       <div className="flex-1 grid grid-cols-3 gap-4">
@@ -620,7 +620,8 @@ export default function AdminTimetablePage() {
                                           if (conflictClass) {
                                             return (
                                               <div className="mt-1 flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 truncate" title={`Conflict: Also assigned to ${conflictClass}`}>
-                                                ⚠️ {conflictClass}
+                                                <AlertTriangle className="w-3 h-3 text-rose-600 shrink-0" />
+                                                <span className="truncate">{conflictClass}</span>
                                               </div>
                                             );
                                           }
@@ -859,7 +860,7 @@ export default function AdminTimetablePage() {
                         const assignedTeacher = getClassPeriodAssignedTeacher(c._id, modalCell.day, modalCell.periodNumber, selectedTeacher);
                         return (
                           <option key={c._id} value={c._id} disabled={!!assignedTeacher} className={assignedTeacher ? 'text-red-500 font-medium' : ''}>
-                            {c.name} - Sec {c.section} {assignedTeacher ? `— ⚠️ (Assigned to ${assignedTeacher})` : ''}
+                            {c.name} - Sec {c.section} {assignedTeacher ? `— (Assigned to ${assignedTeacher})` : ''}
                           </option>
                         );
                       })}
@@ -869,7 +870,8 @@ export default function AdminTimetablePage() {
                       if (conflictTeacher) {
                         return (
                           <div className="mt-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center gap-2">
-                            <span className="font-bold shrink-0">⚠️ Conflict Detected:</span>
+                            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                            <span className="font-bold shrink-0">Conflict Detected:</span>
                             <span>Period {modalCell.periodNumber} for this class is already assigned to <strong className="underline">{conflictTeacher}</strong>.</span>
                           </div>
                         );
@@ -898,7 +900,7 @@ export default function AdminTimetablePage() {
                           const assignedClass = getTeacherAssignedClass(t.user?._id, modalCell.day, modalCell.periodNumber, getSelectedClassObj()?._id);
                           return (
                             <option key={t.user?._id} value={t.user?._id} disabled={!!assignedClass} className={assignedClass ? 'text-red-500 font-medium' : ''}>
-                              {t.user?.name} {assignedClass ? `— ⚠️ (Already assigned to ${assignedClass})` : `(${t.subject?.name || t.department || 'General'})`}
+                              {t.user?.name} {assignedClass ? `— (Already assigned to ${assignedClass})` : `(${t.subject?.name || t.department || 'General'})`}
                             </option>
                           );
                         })
@@ -909,7 +911,8 @@ export default function AdminTimetablePage() {
                       if (conflictClass) {
                         return (
                           <div className="mt-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center gap-2">
-                            <span className="font-bold shrink-0">⚠️ Conflict Detected:</span>
+                            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                            <span className="font-bold shrink-0">Conflict Detected:</span>
                             <span>This teacher is already assigned to <strong className="underline font-bold">{conflictClass}</strong> on {modalCell.day} Period {modalCell.periodNumber}.</span>
                           </div>
                         );

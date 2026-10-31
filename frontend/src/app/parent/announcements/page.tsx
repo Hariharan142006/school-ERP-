@@ -43,7 +43,6 @@ export default function ParentAnnouncementsPage() {
           badge: 'bg-rose-100 text-rose-700 border-rose-300 border font-extrabold',
           strip: 'bg-rose-600',
           card: 'border-rose-300 ring-1 ring-rose-200 bg-rose-50/20',
-          icon: '🚨',
           iconComponent: AlertTriangle,
           textColor: 'text-rose-700'
         };
@@ -53,7 +52,6 @@ export default function ParentAnnouncementsPage() {
           badge: 'bg-amber-100 text-amber-800 border-amber-300 border font-bold',
           strip: 'bg-amber-500',
           card: 'border-amber-200 bg-amber-50/10',
-          icon: '⚠️',
           iconComponent: AlertCircle,
           textColor: 'text-amber-800'
         };
@@ -63,7 +61,6 @@ export default function ParentAnnouncementsPage() {
           badge: 'bg-indigo-100 text-indigo-700 border-indigo-200 border font-bold',
           strip: 'bg-indigo-600',
           card: 'border-indigo-100 bg-indigo-50/10',
-          icon: '⭐',
           iconComponent: Sparkles,
           textColor: 'text-indigo-700'
         };
@@ -73,7 +70,6 @@ export default function ParentAnnouncementsPage() {
           badge: 'bg-slate-100 text-slate-700 border-slate-200 border font-semibold',
           strip: 'bg-slate-400',
           card: 'border-slate-200',
-          icon: '📢',
           iconComponent: Info,
           textColor: 'text-slate-700'
         };
@@ -111,7 +107,9 @@ export default function ParentAnnouncementsPage() {
           onClick={() => setPriorityFilter('Emergency')}
         >
           <div className="flex items-center gap-3">
-            <span className="text-2xl animate-bounce">🚨</span>
+            <div className="p-2 rounded-xl bg-white/20">
+              <AlertTriangle className="w-6 h-6 text-white animate-pulse" />
+            </div>
             <div>
               <h4 className="font-extrabold text-sm uppercase tracking-wide">Emergency Alert Active</h4>
               <p className="text-xs text-white/90">There is {emergencyCount} emergency advisory from the school. Click to view immediately.</p>
@@ -143,7 +141,7 @@ export default function ParentAnnouncementsPage() {
               : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
           }`}
         >
-          <span>🚨</span> Emergency ({emergencyCount})
+          <AlertTriangle className="w-3.5 h-3.5" /> Emergency ({emergencyCount})
         </button>
         <button
           onClick={() => setPriorityFilter('Urgent')}
@@ -153,7 +151,7 @@ export default function ParentAnnouncementsPage() {
               : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
           }`}
         >
-          <span>⚠️</span> Urgent ({urgentCount})
+          <AlertCircle className="w-3.5 h-3.5" /> Urgent ({urgentCount})
         </button>
         <button
           onClick={() => setPriorityFilter('Important')}
@@ -163,7 +161,7 @@ export default function ParentAnnouncementsPage() {
               : 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100'
           }`}
         >
-          <span>⭐</span> Important ({importantCount})
+          <Sparkles className="w-3.5 h-3.5" /> Important ({importantCount})
         </button>
         <button
           onClick={() => setPriorityFilter('Normal')}
@@ -173,7 +171,7 @@ export default function ParentAnnouncementsPage() {
               : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
           }`}
         >
-          <span>📢</span> Normal ({normalCount})
+          <Info className="w-3.5 h-3.5" /> Normal ({normalCount})
         </button>
       </div>
 
@@ -216,7 +214,7 @@ export default function ParentAnnouncementsPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     {/* Priority Badge */}
                     <span className={`px-2.5 py-1 rounded-lg text-xs tracking-wide flex items-center gap-1.5 ${pInfo.badge}`}>
-                      <span>{pInfo.icon}</span>
+                      <pInfo.iconComponent className="w-3.5 h-3.5" />
                       <span>{pInfo.label}</span>
                     </span>
 

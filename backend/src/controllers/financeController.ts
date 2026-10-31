@@ -2,15 +2,23 @@ import { Request, Response } from 'express';
 import FeeRecordModel from '../models/FeeRecord';
 import { isPositiveNumber, isValidDate } from '../utils/validation';
 
+import mongoose from 'mongoose';
+
 export const getFees = async (req: Request, res: Response): Promise<void> => {
   try {
     const { studentId, studentIds, classId, className } = req.query;
     const filter: any = {};
 
     if (studentId && studentId !== 'undefined' && studentId !== 'null') {
-      filter.student = studentId;
+      const sId = String(studentId).trim();
+      if (mongoose.Types.ObjectId.isValid(sId) && /^[0-9a-fA-F]{24}$/.test(sId)) {
+        filter.student = sId;
+      } else {
+        res.json([]);
+        return;
+      }
     } else if (studentIds) {
-      const ids = String(studentIds).split(',').map(id => id.trim()).filter(id => id && id !== 'undefined' && id !== 'null');
+      const ids = String(studentIds).split(',').map(id => id.trim()).filter(id => id && id !== 'undefined' && id !== 'null' && mongoose.Types.ObjectId.isValid(id) && /^[0-9a-fA-F]{24}$/.test(id));
       if (ids.length > 0) {
         filter.student = { $in: ids };
       }

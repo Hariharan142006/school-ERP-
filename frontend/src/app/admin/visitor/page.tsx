@@ -214,8 +214,8 @@ export default function VisitorModulePage() {
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-slate-700">Mobile No:<span className="text-rose-500">*</span></label>
                 <div className="flex border rounded-lg overflow-hidden focus-within:border-purple-500 bg-white">
-                  <span className="px-3 py-2 bg-slate-50 border-r text-sm text-slate-600 flex items-center">
-                    🇮🇳 +91
+                  <span className="px-3 py-2 bg-slate-50 border-r text-sm text-slate-600 flex items-center font-medium">
+                    +91
                   </span>
                   <input 
                     type="tel" 
@@ -247,8 +247,8 @@ export default function VisitorModulePage() {
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-slate-700">Whatsapp Number:<span className="text-rose-500">*</span></label>
                 <div className="flex border rounded-lg overflow-hidden focus-within:border-purple-500 bg-white opacity-90">
-                  <span className="px-3 py-2 bg-slate-50 border-r text-sm text-slate-600 flex items-center">
-                    🇮🇳 +91
+                  <span className="px-3 py-2 bg-slate-50 border-r text-sm text-slate-600 flex items-center font-medium">
+                    +91
                   </span>
                   <input 
                     type="tel" 

@@ -13,6 +13,7 @@ import {
   Alert
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { AcademicIcon } from '../components/Icons';
 
 export const LoginScreen = () => {
   const [username, setUsername] = useState('parent_murugan');
@@ -43,7 +44,7 @@ export const LoginScreen = () => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.headerBox}>
             <View style={styles.logoBadge}>
-              <Text style={styles.logoBadgeText}>🎓</Text>
+              <AcademicIcon size={32} color="#FFFFFF" strokeWidth={2} />
             </View>
             <Text style={styles.appName}>AADHITHYA</Text>
             <Text style={styles.appSub}>INTERNATIONAL PUBLIC SCHOOL</Text>
@@ -88,7 +89,7 @@ export const LoginScreen = () => {
               {submitting ? (
                 <ActivityIndicator color="#ffffff" />
               ) : (
-                <Text style={styles.buttonText}>Sign In to Parent Portal →</Text>
+                <Text style={styles.buttonText}>Sign In to Parent Portal</Text>
               )}
             </TouchableOpacity>
 
@@ -99,7 +100,7 @@ export const LoginScreen = () => {
                 setPassword('parent123');
               }}
             >
-              <Text style={styles.demoTitle}>💡 Quick Fill Parent Account</Text>
+              <Text style={styles.demoTitle}>Quick Fill Parent Demo Account</Text>
               <Text style={styles.demoText}>Username: parent_murugan | Password: parent123</Text>
             </TouchableOpacity>
           </View>

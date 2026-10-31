@@ -172,8 +172,16 @@ export default function ParentTransportPage() {
                           <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                             {childBusLogs.slice(0, 5).map((log: any) => (
                               <div key={log._id} className="flex justify-between items-center bg-slate-50 p-2 rounded-lg text-[11px]">
-                                <span className="font-semibold text-slate-800">
-                                  {log.eventType === 'REACHED_SCHOOL' ? '☀️ Reached School' : '🌙 Departed School'}
+                                <span className="font-semibold text-slate-800 flex items-center gap-1.5">
+                                  {log.eventType === 'REACHED_SCHOOL' ? (
+                                    <>
+                                      <Sun className="w-3.5 h-3.5 text-amber-500" /> Reached School
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Moon className="w-3.5 h-3.5 text-indigo-500" /> Departed School
+                                    </>
+                                  )}
                                 </span>
                                 <span className="text-slate-500 font-mono text-[10px]">
                                   {new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

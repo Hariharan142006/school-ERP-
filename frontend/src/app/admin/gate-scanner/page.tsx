@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Scan, Camera, ShieldCheck, CheckCircle, Clock, XCircle, 
   Search, RefreshCw, Volume2, UserCheck, QrCode, AlertCircle, X,
-  GraduationCap
+  GraduationCap, Phone
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -389,8 +389,8 @@ export default function GateScannerPage() {
                       <div className="text-base font-black text-slate-900 leading-tight">
                         {escortNameDisplay}
                       </div>
-                      <div className="text-[11px] text-indigo-700 font-semibold mt-0.5">
-                        📞 {scannedPass.contactNumber || 'No phone recorded'}
+                      <div className="text-[11px] text-indigo-700 font-semibold mt-0.5 flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-indigo-600" /> {scannedPass.contactNumber || 'No phone recorded'}
                       </div>
                     </div>
                     <div className="text-[11px] text-slate-600 pt-1.5 border-t border-indigo-200/60">

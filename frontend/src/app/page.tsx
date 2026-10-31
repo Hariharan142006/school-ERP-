@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import api from '@/lib/axios';
 import { useAuthStore } from '@/store/authStore';
-import { LogIn, Sparkles, Calendar as CalendarIcon, Eye, EyeOff, ChevronLeft, ChevronRight, GraduationCap, ShieldCheck, ArrowRight, UserCheck } from 'lucide-react';
+import { LogIn, Sparkles, Calendar as CalendarIcon, Eye, EyeOff, ChevronLeft, ChevronRight, GraduationCap, ShieldCheck, ArrowRight, UserCheck, X } from 'lucide-react';
 
 export default function LandingPage() {
   const [username, setUsername] = useState('');
@@ -287,7 +287,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <button onClick={() => setShowCalendar(false)} className="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-300 transition-colors cursor-pointer">
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
             

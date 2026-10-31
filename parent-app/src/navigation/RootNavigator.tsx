@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Modal,
   ScrollView,
-  TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
@@ -26,6 +26,27 @@ import { AnnouncementsScreen } from '../screens/AnnouncementsScreen';
 import { HomeworkScreen } from '../screens/HomeworkScreen';
 import { TimetableScreen } from '../screens/TimetableScreen';
 import { GatePassScreen } from '../screens/GatePassScreen';
+
+import {
+  HomeIcon,
+  CalendarIcon,
+  AcademicIcon,
+  FeesIcon,
+  TransportIcon,
+  BellIcon,
+  UserIcon,
+  GatePassIcon,
+  LeaveIcon,
+  AwardIcon,
+  AnnouncementIcon,
+  HomeworkIcon,
+  TimetableIcon,
+  LogoutIcon,
+  ChevronRightIcon,
+  CheckIcon,
+  CloseIcon,
+  MenuIcon,
+} from '../components/Icons';
 
 export type TabName = 'Home' | 'Attendance' | 'Academic' | 'Fees' | 'Transport' | 'Leave' | 'Profile' | 'Announcements' | 'Homework' | 'Timetable' | 'GatePass';
 
@@ -66,7 +87,7 @@ export const RootNavigator = () => {
       case 'Transport':
         return <TransportScreen />;
       case 'Leave':
-        return <LeaveScreen />;
+        return <LeaveScreen navigation={{ navigate: navigateTo, goBack: () => navigateTo('Home') }} />;
       case 'Profile':
         return <ProfileScreen />;
       case 'Announcements':
@@ -76,22 +97,21 @@ export const RootNavigator = () => {
       case 'Timetable':
         return <TimetableScreen />;
       case 'GatePass':
-        return <GatePassScreen />;
+        return <GatePassScreen navigation={{ navigate: navigateTo, goBack: () => navigateTo('Home') }} />;
       default:
         return <DashboardScreen navigation={{ navigate: navigateTo }} />;
     }
   };
 
-  // Bottom Navigation Bar: strictly the requested core pages
-  const primaryTabs: { name: TabName; icon: string; label: string }[] = [
-    { name: 'Home', icon: '🏠', label: 'Home' },
-    { name: 'Attendance', icon: '📅', label: 'Attendance' },
-    { name: 'Academic', icon: '📖', label: 'Academic' },
-    { name: 'Fees', icon: '💰', label: 'Fees' },
-    { name: 'Transport', icon: '🚌', label: 'Transport' },
+  // Bottom Navigation Bar with Modern Stroke Icons
+  const primaryTabs: { name: TabName; icon: (color: string) => React.ReactNode; label: string }[] = [
+    { name: 'Home', icon: (color) => <HomeIcon size={20} color={color} strokeWidth={2.2} />, label: 'Home' },
+    { name: 'Attendance', icon: (color) => <CalendarIcon size={20} color={color} strokeWidth={2.2} />, label: 'Attendance' },
+    { name: 'Academic', icon: (color) => <AcademicIcon size={20} color={color} strokeWidth={2.2} />, label: 'Academic' },
+    { name: 'Fees', icon: (color) => <FeesIcon size={20} color={color} strokeWidth={2.2} />, label: 'Fees' },
+    { name: 'Transport', icon: (color) => <TransportIcon size={20} color={color} strokeWidth={2.2} />, label: 'Transport' },
   ];
 
-  const currentChildName = selectedStudent?.name || 'Karthik Murugan';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -100,17 +120,9 @@ export const RootNavigator = () => {
       {/* Top Application Header */}
       <View style={styles.appHeader}>
         <View style={styles.headerLeft}>
-          {/* Professional Hamburger Menu Button on TOP-LEFT */}
-          <TouchableOpacity
-            style={styles.menuButtonLeft}
-            onPress={() => setMenuVisible(true)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.menuBar} />
-            <View style={[styles.menuBar, { width: 14 }]} />
-            <View style={styles.menuBar} />
-          </TouchableOpacity>
-
+          <View style={styles.schoolLogoBadge}>
+            <AcademicIcon size={20} color="#FFFFFF" strokeWidth={2.2} />
+          </View>
           <View style={styles.schoolTitleContainer}>
             <Text style={styles.schoolTitle}>AATHITHIYA</Text>
             <Text style={styles.schoolSubtitle}>INTERNATIONAL PUBLIC SCHOOL</Text>
@@ -118,19 +130,23 @@ export const RootNavigator = () => {
         </View>
 
         <View style={styles.headerRight}>
-          {/* Active Child Selector Pill */}
+          {/* Quick Notice Bell */}
           <TouchableOpacity
-            style={styles.childPill}
-            onPress={() => setMenuVisible(true)}
-            activeOpacity={0.8}
+            style={styles.headerIconButton}
+            onPress={() => navigateTo('Announcements')}
+            activeOpacity={0.7}
           >
-            <View style={styles.childAvatarDot}>
-              <Text style={styles.childAvatarInitial}>{currentChildName.charAt(0)}</Text>
-            </View>
-            <Text style={styles.childPillText} numberOfLines={1}>
-              {currentChildName.split(' ')[0]}
-            </Text>
-            <Text style={styles.childPillArrow}>▾</Text>
+            <BellIcon size={18} color="#FFFFFF" strokeWidth={2.2} />
+            <View style={styles.headerIconBadge} />
+          </TouchableOpacity>
+
+          {/* Modern Sleek Hamburger Menu Button on RIGHT */}
+          <TouchableOpacity
+            style={styles.menuButtonRight}
+            onPress={() => setMenuVisible(true)}
+            activeOpacity={0.7}
+          >
+            <MenuIcon size={20} color="#FFFFFF" strokeWidth={2.4} />
           </TouchableOpacity>
         </View>
       </View>
@@ -138,22 +154,25 @@ export const RootNavigator = () => {
       {/* Main Active Screen */}
       <View style={styles.screenContainer}>{renderActiveScreen()}</View>
 
-      {/* Bottom Navigation Bar */}
-      <View style={styles.tabBarWrapper}>
+      {/* Modern Luxury Floating Island Navigation Bar */}
+      <View style={styles.tabBarWrapper} pointerEvents="box-none">
         <View style={styles.tabBar}>
           {primaryTabs.map((tab) => {
             const isActive = activeTab === tab.name;
+            const iconColor = isActive ? '#FFFFFF' : '#64748B';
             return (
               <TouchableOpacity
                 key={tab.name}
-                style={styles.tabItem}
-                onPress={() => setActiveTab(tab.name)}
-                activeOpacity={0.7}
+                style={[styles.tabItem, isActive && styles.tabItemActive]}
+                onPress={() => {
+                  if (activeTab !== tab.name) {
+                    setActiveTab(tab.name);
+                  }
+                }}
+                activeOpacity={0.75}
               >
                 <View style={[styles.iconCircle, isActive && styles.iconCircleActive]}>
-                  <Text style={[styles.tabIcon, isActive && styles.tabIconActive]}>
-                    {tab.icon}
-                  </Text>
+                  {tab.icon(iconColor)}
                 </View>
                 <Text
                   style={[styles.tabLabel, isActive && styles.tabLabelActive]}
@@ -161,6 +180,7 @@ export const RootNavigator = () => {
                 >
                   {tab.label}
                 </Text>
+                {isActive && <View style={styles.activePillDot} />}
               </TouchableOpacity>
             );
           })}
@@ -168,20 +188,24 @@ export const RootNavigator = () => {
       </View>
 
       {/* Slide-out Menu Drawer Modal */}
-      <Modal
-        visible={menuVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
+      {menuVisible ? (
+        <Modal
+          visible={menuVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setMenuVisible(false)}
+        >
           <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={styles.drawerContainer}>
+            <TouchableOpacity
+              style={styles.modalBackdrop}
+              activeOpacity={1}
+              onPress={() => setMenuVisible(false)}
+            />
+            <View style={styles.drawerContainer}>
                 {/* Drawer Header */}
                 <View style={styles.drawerHeader}>
                   <View style={styles.drawerAvatar}>
-                    <Text style={styles.drawerAvatarText}>👨‍👩‍👦</Text>
+                    <UserIcon size={24} color="#FFFFFF" strokeWidth={2.2} />
                   </View>
                   <View style={styles.drawerUserInfo}>
                     <Text style={styles.drawerUserName}>{user.name || 'Parent'}</Text>
@@ -191,7 +215,7 @@ export const RootNavigator = () => {
                     style={styles.closeButton}
                     onPress={() => setMenuVisible(false)}
                   >
-                    <Text style={styles.closeButtonText}>✕</Text>
+                    <CloseIcon size={16} color="#64748B" strokeWidth={2.5} />
                   </TouchableOpacity>
                 </View>
 
@@ -210,7 +234,11 @@ export const RootNavigator = () => {
                         }}
                       >
                         <View style={styles.childOptionLeft}>
-                          <Text style={styles.childOptionIcon}>👦</Text>
+                          <View style={[styles.childAvatarBadge, isSelected && styles.childAvatarBadgeActive]}>
+                            <Text style={[styles.childAvatarInitialSmall, isSelected && styles.childAvatarInitialSmallActive]}>
+                              {child.name.charAt(0)}
+                            </Text>
+                          </View>
                           <View>
                             <Text style={[styles.childOptionName, isSelected && styles.childOptionNameActive]}>
                               {child.name}
@@ -220,7 +248,7 @@ export const RootNavigator = () => {
                             </Text>
                           </View>
                         </View>
-                        {isSelected && <Text style={styles.checkMark}>✓</Text>}
+                        {isSelected && <CheckIcon size={18} color="#2563EB" strokeWidth={2.5} />}
                       </TouchableOpacity>
                     );
                   })}
@@ -233,13 +261,13 @@ export const RootNavigator = () => {
                     onPress={() => navigateTo('GatePass')}
                   >
                     <View style={[styles.drawerItemIconBox, { backgroundColor: '#F3E8FF' }]}>
-                      <Text style={styles.drawerItemIcon}>🎫</Text>
+                      <GatePassIcon size={20} color="#7C3AED" strokeWidth={2} />
                     </View>
                     <View style={styles.drawerItemTextContainer}>
                       <Text style={styles.drawerItemTitle}>Digital Gate Pass & QR</Text>
                       <Text style={styles.drawerItemSubtitle}>Early exit authorization & QR code</Text>
                     </View>
-                    <Text style={styles.drawerItemArrow}>›</Text>
+                    <ChevronRightIcon size={18} color="#94A3B8" strokeWidth={2} />
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -247,13 +275,13 @@ export const RootNavigator = () => {
                     onPress={() => navigateTo('Leave')}
                   >
                     <View style={[styles.drawerItemIconBox, { backgroundColor: '#FDF2F8' }]}>
-                      <Text style={styles.drawerItemIcon}>📝</Text>
+                      <LeaveIcon size={20} color="#DB2777" strokeWidth={2} />
                     </View>
                     <View style={styles.drawerItemTextContainer}>
                       <Text style={styles.drawerItemTitle}>Apply Leave / History</Text>
                       <Text style={styles.drawerItemSubtitle}>Request leave with principal/class teacher</Text>
                     </View>
-                    <Text style={styles.drawerItemArrow}>›</Text>
+                    <ChevronRightIcon size={18} color="#94A3B8" strokeWidth={2} />
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -261,13 +289,13 @@ export const RootNavigator = () => {
                     onPress={() => navigateTo('Profile')}
                   >
                     <View style={[styles.drawerItemIconBox, { backgroundColor: '#EFF6FF' }]}>
-                      <Text style={styles.drawerItemIcon}>👤</Text>
+                      <UserIcon size={20} color="#2563EB" strokeWidth={2} />
                     </View>
                     <View style={styles.drawerItemTextContainer}>
                       <Text style={styles.drawerItemTitle}>Student & Parent Profile</Text>
                       <Text style={styles.drawerItemSubtitle}>Admission details, emergency contacts</Text>
                     </View>
-                    <Text style={styles.drawerItemArrow}>›</Text>
+                    <ChevronRightIcon size={18} color="#94A3B8" strokeWidth={2} />
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -275,28 +303,27 @@ export const RootNavigator = () => {
                     onPress={() => navigateTo('Academic')}
                   >
                     <View style={[styles.drawerItemIconBox, { backgroundColor: '#F3E8FF' }]}>
-                      <Text style={styles.drawerItemIcon}>🏆</Text>
+                      <AwardIcon size={20} color="#9333EA" strokeWidth={2} />
                     </View>
                     <View style={styles.drawerItemTextContainer}>
                       <Text style={styles.drawerItemTitle}>Report Cards & Grades</Text>
                       <Text style={styles.drawerItemSubtitle}>Term assessments, marks and ranking</Text>
                     </View>
-                    <Text style={styles.drawerItemArrow}>›</Text>
+                    <ChevronRightIcon size={18} color="#94A3B8" strokeWidth={2} />
                   </TouchableOpacity>
-
 
                   <TouchableOpacity
                     style={styles.drawerItem}
                     onPress={() => navigateTo('Announcements')}
                   >
                     <View style={[styles.drawerItemIconBox, { backgroundColor: '#FCE7F3' }]}>
-                      <Text style={styles.drawerItemIcon}>📢</Text>
+                      <AnnouncementIcon size={20} color="#E11D48" strokeWidth={2} />
                     </View>
                     <View style={styles.drawerItemTextContainer}>
                       <Text style={styles.drawerItemTitle}>Announcements</Text>
                       <Text style={styles.drawerItemSubtitle}>Live school notices & updates</Text>
                     </View>
-                    <Text style={styles.drawerItemArrow}>›</Text>
+                    <ChevronRightIcon size={18} color="#94A3B8" strokeWidth={2} />
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -304,13 +331,13 @@ export const RootNavigator = () => {
                     onPress={() => navigateTo('Homework')}
                   >
                     <View style={[styles.drawerItemIconBox, { backgroundColor: '#E0E7FF' }]}>
-                      <Text style={styles.drawerItemIcon}>📝</Text>
+                      <HomeworkIcon size={20} color="#4F46E5" strokeWidth={2} />
                     </View>
                     <View style={styles.drawerItemTextContainer}>
                       <Text style={styles.drawerItemTitle}>Homework</Text>
                       <Text style={styles.drawerItemSubtitle}>Daily assignments</Text>
                     </View>
-                    <Text style={styles.drawerItemArrow}>›</Text>
+                    <ChevronRightIcon size={18} color="#94A3B8" strokeWidth={2} />
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -318,33 +345,32 @@ export const RootNavigator = () => {
                     onPress={() => navigateTo('Timetable')}
                   >
                     <View style={[styles.drawerItemIconBox, { backgroundColor: '#ECFCCB' }]}>
-                      <Text style={styles.drawerItemIcon}>📅</Text>
+                      <TimetableIcon size={20} color="#65A30D" strokeWidth={2} />
                     </View>
                     <View style={styles.drawerItemTextContainer}>
                       <Text style={styles.drawerItemTitle}>Timetable</Text>
                       <Text style={styles.drawerItemSubtitle}>Weekly class schedule</Text>
                     </View>
-                    <Text style={styles.drawerItemArrow}>›</Text>
+                    <ChevronRightIcon size={18} color="#94A3B8" strokeWidth={2} />
                   </TouchableOpacity>
-
 
                   <TouchableOpacity
                     style={styles.drawerItem}
                     onPress={() => navigateTo('Transport')}
                   >
                     <View style={[styles.drawerItemIconBox, { backgroundColor: '#FEF3C7' }]}>
-                      <Text style={styles.drawerItemIcon}>🚌</Text>
+                      <TransportIcon size={20} color="#D97706" strokeWidth={2} />
                     </View>
                     <View style={styles.drawerItemTextContainer}>
                       <Text style={styles.drawerItemTitle}>Bus Transport Details</Text>
                       <Text style={styles.drawerItemSubtitle}>Vehicle number, driver contact & stops</Text>
                     </View>
-                    <Text style={styles.drawerItemArrow}>›</Text>
+                    <ChevronRightIcon size={18} color="#94A3B8" strokeWidth={2} />
                   </TouchableOpacity>
 
                   {/* School Contact Card */}
                   <View style={styles.contactCard}>
-                    <Text style={styles.contactTitle}>🏫 School Contact & Helpdesk</Text>
+                    <Text style={styles.contactTitle}>School Contact & Helpdesk</Text>
                     <Text style={styles.contactText}>Phone: +91 98401 23456</Text>
                     <Text style={styles.contactText}>Email: office@aathithiyaschool.edu</Text>
                   </View>
@@ -357,14 +383,14 @@ export const RootNavigator = () => {
                       logout();
                     }}
                   >
-                    <Text style={styles.logoutButtonText}>Sign Out from Portal</Text>
+                    <LogoutIcon size={18} color="#DC2626" strokeWidth={2.2} />
+                    <Text style={[styles.logoutButtonText, { marginLeft: 8 }]}>Sign Out from Portal</Text>
                   </TouchableOpacity>
                 </ScrollView>
               </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+            </View>
+        </Modal>
+      ) : null}
     </SafeAreaView>
   );
 };
@@ -391,169 +417,221 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#1E3A8A',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    paddingTop: 12,
+    paddingBottom: 16,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    elevation: 10,
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.28,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
-  menuButtonLeft: {
+  schoolLogoBadge: {
     width: 38,
     height: 38,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 9,
-    marginRight: 10,
+    marginRight: 11,
+    borderWidth: 1.2,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   schoolTitleContainer: {
     justifyContent: 'center',
   },
   schoolTitle: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 16.5,
     fontWeight: '900',
-    letterSpacing: 0.5,
+    letterSpacing: 1.0,
   },
   schoolSubtitle: {
     color: '#93C5FD',
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.3,
+    fontSize: 8.5,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginTop: 1.5,
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
   },
-  childPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-  },
-  childAvatarDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#2563EB',
-    alignItems: 'center',
+  headerIconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
     justifyContent: 'center',
-    marginRight: 6,
+    alignItems: 'center',
+    position: 'relative',
+    borderWidth: 1.2,
+    borderColor: 'rgba(255, 255, 255, 0.22)',
   },
-  childAvatarInitial: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '800',
+  menuButtonRight: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.2,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
-  childPillText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-    maxWidth: 90,
+  headerIconEmoji: {
+    fontSize: 16,
   },
-  childPillArrow: {
-    color: '#BFDBFE',
-    fontSize: 12,
-    marginLeft: 4,
+  headerIconBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 7,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    borderWidth: 1.5,
+    borderColor: '#1E3A8A',
   },
   menuBar: {
     width: 18,
-    height: 2.5,
+    height: 2.2,
     backgroundColor: '#FFFFFF',
     borderRadius: 2,
-    marginVertical: 2,
+    marginVertical: 1.8,
   },
   screenContainer: {
     flex: 1,
+    backgroundColor: '#F8FAFC',
   },
   tabBarWrapper: {
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: -4 },
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 24 : 16,
+    left: 12,
+    right: 12,
+    alignItems: 'center',
+    zIndex: 100,
   },
   tabBar: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+    paddingVertical: 7,
     paddingHorizontal: 8,
+    width: '100%',
+    borderWidth: 1.2,
+    borderColor: '#E2E8F0',
+    elevation: 22,
+    shadowColor: '#1E293B',
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
   },
   tabItem: {
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 3,
+    borderRadius: 22,
     flex: 1,
   },
+  tabItemActive: {
+    backgroundColor: '#F0F7FF',
+  },
   iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 34,
+    borderRadius: 17,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'transparent',
+    marginBottom: 1,
   },
   iconCircleActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#2563EB',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.38,
+    shadowRadius: 8,
+    elevation: 0,
   },
   tabIcon: {
-    fontSize: 19,
-    opacity: 0.55,
+    fontSize: 16,
+    opacity: 0.65,
   },
   tabIconActive: {
+    fontSize: 17,
     opacity: 1.0,
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: '#64748B',
-    marginTop: 2,
+    marginTop: 1.5,
+    letterSpacing: 0.15,
   },
   tabLabelActive: {
-    color: '#2563EB',
-    fontWeight: '700',
+    color: '#1D4ED8',
+    fontWeight: '800',
+  },
+  activePillDot: {
+    width: 14,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#2563EB',
+    marginTop: 2.5,
   },
   modalOverlay: {
     flex: 1,
+    flexDirection: 'row',
     backgroundColor: 'rgba(15, 23, 42, 0.65)',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
+  },
+  modalBackdrop: {
+    flex: 1,
+    height: '100%',
   },
   drawerContainer: {
-    width: '85%',
+    width: '84%',
     height: '100%',
     backgroundColor: '#FFFFFF',
-    elevation: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    shadowOffset: { width: -4, height: 0 },
+    borderTopLeftRadius: 28,
+    borderBottomLeftRadius: 28,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+    elevation: 35,
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.35,
+    shadowRadius: 28,
+    shadowOffset: { width: -8, height: 0 },
+    overflow: 'hidden',
+    zIndex: 1000,
   },
   drawerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#1E3A8A',
-    paddingHorizontal: 16,
-    paddingTop: 48,
-    paddingBottom: 20,
+    paddingHorizontal: 18,
+    paddingTop: Platform.OS === 'android' ? 40 : 48,
+    paddingBottom: 22,
   },
   drawerAvatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#2563EB',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   drawerAvatarText: {
     fontSize: 22,
@@ -616,9 +694,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  childOptionIcon: {
-    fontSize: 24,
-    marginRight: 12,
+  childAvatarBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  childAvatarBadgeActive: {
+    backgroundColor: '#2563EB',
+  },
+  childAvatarInitialSmall: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#475569',
+  },
+  childAvatarInitialSmallActive: {
+    color: '#FFFFFF',
   },
   childOptionName: {
     fontSize: 15,
@@ -701,6 +795,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEE2E2',
     borderRadius: 12,
     paddingVertical: 14,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 36,

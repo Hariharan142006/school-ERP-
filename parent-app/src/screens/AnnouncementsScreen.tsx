@@ -8,11 +8,12 @@ import {
   StatusBar,
   ActivityIndicator,
   RefreshControl,
-  TouchableOpacity
+  TouchableOpacity,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import api from '../config/api';
+import { AnnouncementIcon, BellIcon, AlertCircleIcon } from '../components/Icons';
 
 type PriorityType = 'All' | 'Emergency' | 'Urgent' | 'Important' | 'Normal';
 
@@ -27,8 +28,12 @@ export const AnnouncementsScreen = () => {
 
   const fetchNotices = async () => {
     try {
-      const targetClass = selectedStudent?.grade ? `${selectedStudent.grade}-${selectedStudent.section}` : '';
-      const response = await api.get(`/api/notices?targetAudience=Parents&classId=${targetClass}`);
+      let queryParam = 'targetAudience=Parents';
+      const classParam = selectedStudent?.classId || (selectedStudent?.grade ? `${selectedStudent.grade}-${selectedStudent.section}` : '');
+      if (classParam) {
+        queryParam += `&classId=${encodeURIComponent(classParam)}`;
+      }
+      const response = await api.get(`/api/notices?${queryParam}`);
       setNotices(response.data);
     } catch (error) {
       console.error('Failed to fetch announcements:', error);
@@ -68,7 +73,7 @@ export const AnnouncementsScreen = () => {
     switch (p) {
       case 'emergency':
         return {
-          label: '🚨 EMERGENCY',
+          label: 'EMERGENCY',
           badgeBg: '#FEE2E2',
           badgeText: '#DC2626',
           borderLeft: '#EF4444',
@@ -77,7 +82,7 @@ export const AnnouncementsScreen = () => {
         };
       case 'urgent':
         return {
-          label: '⚠️ URGENT',
+          label: 'URGENT',
           badgeBg: '#FEF3C7',
           badgeText: '#B45309',
           borderLeft: '#F59E0B',
@@ -86,7 +91,7 @@ export const AnnouncementsScreen = () => {
         };
       case 'important':
         return {
-          label: '⭐ IMPORTANT',
+          label: 'IMPORTANT',
           badgeBg: '#EEF2FF',
           badgeText: '#4338CA',
           borderLeft: '#4F46E5',
@@ -95,7 +100,7 @@ export const AnnouncementsScreen = () => {
         };
       default:
         return {
-          label: '📢 NORMAL',
+          label: 'NOTICE',
           badgeBg: '#F1F5F9',
           badgeText: '#475569',
           borderLeft: '#94A3B8',
@@ -121,13 +126,20 @@ export const AnnouncementsScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
-
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Announcements</Text>
-        <Text style={styles.headerSubtitle}>Official school notices & emergency advisories</Text>
+    <View style={styles.container}>
+      {/* Sleek Native Page Header */}
+      <View style={styles.pageHeader}>
+        <View style={styles.titleRow}>
+          <Text style={styles.pageTitle}>Announcements</Text>
+          <View style={styles.classPill}>
+            <Text style={styles.classPillText}>
+              {selectedStudent ? `${selectedStudent.grade}-${selectedStudent.section}` : 'General'}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.pageSubtitle}>
+          Official school notifications, circulars & emergency alerts
+        </Text>
       </View>
 
       {/* Priority Filter Chips */}
@@ -154,7 +166,7 @@ export const AnnouncementsScreen = () => {
                 activeOpacity={0.7}
               >
                 <Text style={textStyle}>
-                  {p === 'All' ? 'All' : p === 'Emergency' ? '🚨 Emergency' : p === 'Urgent' ? '⚠️ Urgent' : p === 'Important' ? '⭐ Important' : '📢 Normal'}
+                  {p}
                 </Text>
               </TouchableOpacity>
             );
@@ -169,7 +181,9 @@ export const AnnouncementsScreen = () => {
           onPress={() => setSelectedPriority('Emergency')}
           activeOpacity={0.8}
         >
-          <Text style={styles.emergencyBannerIcon}>🚨</Text>
+          <View style={{ marginRight: 12 }}>
+            <AlertCircleIcon size={26} color="#DC2626" />
+          </View>
           <View style={styles.emergencyBannerContent}>
             <Text style={styles.emergencyBannerTitle}>EMERGENCY ADVISORY ACTIVE</Text>
             <Text style={styles.emergencyBannerSub}>
@@ -186,8 +200,8 @@ export const AnnouncementsScreen = () => {
       >
         {filteredNotices.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyIcon}>📢</Text>
-            <Text style={styles.emptyTitle}>No Announcements</Text>
+            <AnnouncementIcon size={36} color="#94A3B8" />
+            <Text style={[styles.emptyTitle, { marginTop: 10 }]}>No Announcements</Text>
             <Text style={styles.emptyText}>
               There are currently no {selectedPriority !== 'All' ? selectedPriority.toLowerCase() : ''} notices for you.
             </Text>
@@ -237,7 +251,7 @@ export const AnnouncementsScreen = () => {
           })
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -246,20 +260,41 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  header: {
+  pageHeader: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 10,
+    paddingBottom: 12,
+    backgroundColor: '#F8FAFC',
   },
-  headerTitle: {
-    fontSize: 28,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  pageTitle: {
+    fontSize: 24,
     fontWeight: '800',
     color: '#0F172A',
+    letterSpacing: -0.5,
   },
-  headerSubtitle: {
-    fontSize: 14,
+  classPill: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  classPillText: {
+    color: '#2563EB',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  pageSubtitle: {
+    fontSize: 13,
     color: '#64748B',
     marginTop: 4,
+    fontWeight: '500',
   },
   filterContainer: {
     paddingVertical: 8,
@@ -336,8 +371,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 125, // Extra clearance for floating bottom bar
   },
   emptyCard: {
     backgroundColor: '#FFFFFF',

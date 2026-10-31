@@ -9,7 +9,7 @@ export const App = () => {
     <AuthProvider>
       <SocketProvider>
         <View style={styles.container}>
-          <StatusBar barStyle="light-content" backgroundColor="#1E293B" />
+          <StatusBar barStyle="light-content" backgroundColor="#1E3A8A" />
           <RootNavigator />
         </View>
       </SocketProvider>

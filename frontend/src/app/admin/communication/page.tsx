@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/atoms/Button';
 import { NoticeModal } from '@/components/organisms/NoticeModal';
-import { Plus, Trash2, Megaphone, Bell, CalendarClock } from 'lucide-react';
+import { Plus, Trash2, Megaphone, Bell, CalendarClock, AlertTriangle, AlertCircle, Sparkles, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '@/lib/axios';
 import { useAuthStore } from '@/store/authStore';
@@ -53,15 +53,15 @@ export default function CommunicationPage() {
   const formatPriority = (priority: string = 'Normal') => {
     const p = priority.toLowerCase();
     if (p === 'emergency') {
-      return { label: 'Emergency', badge: 'bg-rose-100 text-rose-700 border-rose-200 border', strip: 'bg-rose-600', icon: '🚨' };
+      return { label: 'Emergency', badge: 'bg-rose-100 text-rose-700 border-rose-200 border', strip: 'bg-rose-600', Icon: AlertTriangle };
     }
     if (p === 'urgent') {
-      return { label: 'Urgent', badge: 'bg-amber-100 text-amber-700 border-amber-200 border', strip: 'bg-amber-500', icon: '⚠️' };
+      return { label: 'Urgent', badge: 'bg-amber-100 text-amber-700 border-amber-200 border', strip: 'bg-amber-500', Icon: AlertCircle };
     }
     if (p === 'important') {
-      return { label: 'Important', badge: 'bg-indigo-100 text-indigo-700 border-indigo-200 border', strip: 'bg-indigo-600', icon: '⭐' };
+      return { label: 'Important', badge: 'bg-indigo-100 text-indigo-700 border-indigo-200 border', strip: 'bg-indigo-600', Icon: Sparkles };
     }
-    return { label: 'Normal', badge: 'bg-slate-100 text-slate-700 border-slate-200 border', strip: 'bg-slate-400', icon: '📢' };
+    return { label: 'Normal', badge: 'bg-slate-100 text-slate-700 border-slate-200 border', strip: 'bg-slate-400', Icon: Info };
   };
 
   const formatAudience = (audience: string) => {
@@ -144,8 +144,8 @@ export default function CommunicationPage() {
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2.5 mb-2.5">
                     {/* Priority Badge */}
-                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 ${pInfo.badge}`}>
-                      <span>{pInfo.icon}</span>
+                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 ${pInfo.badge}`}>
+                      <pInfo.Icon className="w-3.5 h-3.5" />
                       <span>{pInfo.label}</span>
                     </span>
 

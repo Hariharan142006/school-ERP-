@@ -8,11 +8,16 @@ export interface StudentChild {
   name: string;
   admissionNo: string;
   rollNo: string;
+  classId?: string;
   grade: string;
   section: string;
   bloodGroup?: string;
   dob?: string;
   busRoute?: string;
+  gender?: string;
+  fatherName?: string;
+  motherName?: string;
+  address?: string;
 }
 
 interface AuthContextType {
@@ -37,6 +42,10 @@ const defaultStudent: StudentChild = {
   bloodGroup: 'O+ Positive',
   dob: '14 March 2011',
   busRoute: 'Route 14: Anna Nagar Express',
+  gender: 'Male',
+  fatherName: 'Murugan Sundaram',
+  motherName: 'Meenakshi Murugan',
+  address: 'Plot 42, 2nd Main Road, Anna Nagar, Chennai - 600040',
 };
 
 export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -84,11 +93,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           name: item.user?.name || item.name || 'Student',
           admissionNo: item.admissionNumber || 'ADM-1001',
           rollNo: item.rollNumber || '1001',
+          classId: item.enrolledClass?._id || item.enrolledClass?.id || (typeof item.enrolledClass === 'string' ? item.enrolledClass : undefined),
           grade: item.enrolledClass?.name || 'Grade 10',
           section: item.enrolledClass?.section || 'A',
           bloodGroup: item.bloodGroup || 'O+',
+          gender: item.gender || 'Male',
           dob: item.dob ? new Date(item.dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '14 May 2010',
-          busRoute: item.transportMode === 'Bus' ? 'Route 14: Anna Nagar Express' : 'Self / Walking',
+          busRoute: item.busNumber ? `Bus ${item.busNumber}` : (item.transportMode === 'Bus' ? 'Route 14: Anna Nagar Express' : 'Self / Walking'),
+          fatherName: item.fatherName || '',
+          motherName: item.motherName || '',
+          address: item.address || '',
         }));
         setStudentList(mappedList);
         setSelectedStudent((current) => {

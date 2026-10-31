@@ -2,12 +2,18 @@ import { Request, Response } from 'express';
 import HomeworkModel from '../models/Homework';
 import StudentProfileModel from '../models/StudentProfile';
 import { sendEmail, sendSMS } from '../services/notificationService';
+import { resolveClassIds } from '../utils/classResolver';
 
 export const getHomework = async (req: Request, res: Response): Promise<void> => {
   try {
     const { classId } = req.query;
     let query: any = {};
-    if (classId) query.enrolledClass = classId;
+    if (classId) {
+      const resolved = await resolveClassIds(classId);
+      if (resolved.length > 0) {
+        query.enrolledClass = resolved.length === 1 ? resolved[0] : { $in: resolved };
+      }
+    }
     
     const homework = await HomeworkModel.find(query)
       .populate("enrolledClass", "name section")
@@ -16,7 +22,8 @@ export const getHomework = async (req: Request, res: Response): Promise<void> =>
       .sort({ createdAt: -1 })
       .lean();
     res.json(homework);
-  } catch (error) {
+  } catch (error: any) {
+    console.error('getHomework error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

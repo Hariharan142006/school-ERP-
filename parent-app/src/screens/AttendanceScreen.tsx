@@ -1,172 +1,257 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import api from '../config/api';
+import { CalendarIcon, CheckIcon, CloseIcon } from '../components/Icons';
 
 interface AttendanceRecord {
   id: string;
+  rawDate: Date;
   date: string;
   day: string;
   status: 'Present' | 'Absent' | 'On Duty' | 'Half Day' | 'Holiday';
-  session: 'Full Day' | 'Morning' | 'Afternoon';
+  session: string;
   remarks?: string;
 }
 
-import api from '../config/api';
-
 export const AttendanceScreen = ({ navigation }: any) => {
   const { selectedStudent } = useAuth();
-  const [selectedMonth, setSelectedMonth] = useState('September 2026');
-  const [loading, setLoading] = useState(false);
-  const [records, setRecords] = useState<AttendanceRecord[]>([
-    { id: '1', date: '18 Sep 2026', day: 'Friday', status: 'Present', session: 'Full Day' },
-    { id: '2', date: '17 Sep 2026', day: 'Thursday', status: 'Present', session: 'Full Day' },
-    { id: '3', date: '16 Sep 2026', day: 'Wednesday', status: 'Present', session: 'Full Day' },
-    { id: '4', date: '15 Sep 2026', day: 'Tuesday', status: 'Present', session: 'Full Day' },
-    { id: '5', date: '14 Sep 2026', day: 'Monday', status: 'On Duty', session: 'Full Day', remarks: 'Inter-school Sports Meet' },
-    { id: '6', date: '11 Sep 2026', day: 'Friday', status: 'Present', session: 'Full Day' },
-    { id: '7', date: '10 Sep 2026', day: 'Thursday', status: 'Absent', session: 'Full Day', remarks: 'Medical Leave' },
-    { id: '8', date: '09 Sep 2026', day: 'Wednesday', status: 'Present', session: 'Full Day' },
-    { id: '9', date: '08 Sep 2026', day: 'Tuesday', status: 'Present', session: 'Full Day' },
-    { id: '10', date: '07 Sep 2026', day: 'Monday', status: 'Present', session: 'Full Day' },
-  ]);
-
-  React.useEffect(() => {
-    fetchAttendance();
-  }, [selectedStudent]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);
+  const [selectedFilter, setSelectedFilter] = useState<'All' | 'Present' | 'Absent' | 'OD'>('All');
 
   const fetchAttendance = async () => {
     const studentId = selectedStudent?.id || selectedStudent?._id;
-    if (!studentId) return;
-    setLoading(true);
+    if (!studentId) {
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
+
     try {
       const res = await api.get(`/api/attendance/student/${studentId}`);
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+      if (res.data && Array.isArray(res.data)) {
         const mapped: AttendanceRecord[] = res.data.map((item: any, idx: number) => {
           const d = new Date(item.date);
-          const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+          const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
           const dateFormatted = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-          const statusRaw = String(item.status).toUpperCase();
+          const statusRaw = String(item.status || 'Present').toUpperCase();
+
           let statusVal: AttendanceRecord['status'] = 'Present';
           if (statusRaw === 'ABSENT') statusVal = 'Absent';
           else if (statusRaw === 'ON DUTY' || statusRaw === 'OD') statusVal = 'On Duty';
-          else if (statusRaw === 'HALF DAY') statusVal = 'Half Day';
+          else if (statusRaw === 'HALF DAY' || statusRaw === 'HALF-DAY') statusVal = 'Half Day';
           else if (statusRaw === 'HOLIDAY') statusVal = 'Holiday';
 
           return {
-            id: String(idx + 1),
+            id: item._id || String(idx + 1),
+            rawDate: d,
             date: dateFormatted,
             day: dayName,
             status: statusVal,
             session: 'Full Day',
+            remarks: item.remarks || (statusVal === 'On Duty' ? 'Official School Activity' : undefined),
           };
         });
         setRecords(mapped);
       }
     } catch (e) {
-      console.log('Attendance fetch error:', e);
+      console.error('Attendance fetch error:', e);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const attendanceList = records;
+  useEffect(() => {
+    fetchAttendance();
+  }, [selectedStudent]);
 
-  const getStatusColor = (status: AttendanceRecord['status']) => {
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchAttendance();
+  };
+
+  // Real Computed Statistics from Database Records
+  const totalDays = records.length;
+  const presentCount = records.filter(r => r.status === 'Present').length;
+  const absentCount = records.filter(r => r.status === 'Absent').length;
+  const odCount = records.filter(r => r.status === 'On Duty').length;
+  const halfDayCount = records.filter(r => r.status === 'Half Day').length;
+
+  const attendancePercentage = totalDays > 0
+    ? (((presentCount + odCount + halfDayCount * 0.5) / totalDays) * 100).toFixed(1)
+    : '100.0';
+
+  const filteredRecords = records.filter(r => {
+    if (selectedFilter === 'All') return true;
+    if (selectedFilter === 'Present') return r.status === 'Present';
+    if (selectedFilter === 'Absent') return r.status === 'Absent';
+    if (selectedFilter === 'OD') return r.status === 'On Duty' || r.status === 'Half Day';
+    return true;
+  });
+
+  const getStatusBadge = (status: AttendanceRecord['status']) => {
     switch (status) {
       case 'Present':
-        return { bg: '#E6F4EA', text: '#137333', border: '#CEEAD6' };
+        return { bg: '#ECFDF5', text: '#059669', border: '#A7F3D0', dot: '#10B981' };
       case 'Absent':
-        return { bg: '#FCE8E6', text: '#C5221F', border: '#FAD2CF' };
+        return { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', dot: '#EF4444' };
       case 'On Duty':
-        return { bg: '#E8F0FE', text: '#1A73E8', border: '#D2E3FC' };
+        return { bg: '#EFF6FF', text: '#2563EB', border: '#BFDBFE', dot: '#3B82F6' };
       case 'Half Day':
-        return { bg: '#FEF7E0', text: '#B06000', border: '#FEEFC3' };
-      case 'Holiday':
-        return { bg: '#F1F3F4', text: '#5F6368', border: '#E8EAED' };
+        return { bg: '#FFFBEB', text: '#D97706', border: '#FDE68A', dot: '#F59E0B' };
       default:
-        return { bg: '#F1F3F4', text: '#5F6368', border: '#E8EAED' };
+        return { bg: '#F1F5F9', text: '#64748B', border: '#E2E8F0', dot: '#94A3B8' };
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1E293B" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Attendance Record</Text>
-        <Text style={styles.headerSubtitle}>
-          {selectedStudent ? `${selectedStudent.name} (${selectedStudent.grade}-${selectedStudent.section})` : 'Student Attendance'}
+    <View style={styles.container}>
+      {/* Sleek Native Page Header - Seamlessly integrated, zero collision */}
+      <View style={styles.pageHeader}>
+        <View style={styles.titleRow}>
+          <Text style={styles.pageTitle}>Attendance Record</Text>
+          <View style={styles.classPill}>
+            <Text style={styles.classPillText}>
+              {selectedStudent ? `${selectedStudent.grade}-${selectedStudent.section}` : 'Class'}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.pageSubtitle}>
+          {selectedStudent ? `${selectedStudent.name} • Roll: ${selectedStudent.rollNo}` : 'Real-time Attendance Records'}
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Month Selector */}
-        <View style={styles.monthSelector}>
-          <TouchableOpacity style={styles.monthButton}>
-            <Text style={styles.monthButtonText}>‹</Text>
-          </TouchableOpacity>
-          <Text style={styles.monthText}>{selectedMonth}</Text>
-          <TouchableOpacity style={styles.monthButton}>
-            <Text style={styles.monthButtonText}>›</Text>
-          </TouchableOpacity>
-        </View>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2563EB']} />}
+      >
+        {/* Dynamic Percentage & Metric Hero Card */}
+        <View style={styles.heroCard}>
+          <View style={styles.heroTop}>
+            <View style={styles.circleContainer}>
+              <View style={styles.percentageCircle}>
+                <Text style={styles.percentageNumber}>{attendancePercentage}%</Text>
+                <Text style={styles.percentageLabel}>Overall Rate</Text>
+              </View>
+            </View>
 
-        {/* Overall Percentage Card */}
-        <View style={styles.percentageCard}>
-          <View style={styles.percentageCircle}>
-            <Text style={styles.percentageNumber}>94.5%</Text>
-            <Text style={styles.percentageLabel}>Attendance</Text>
+            <View style={styles.heroSummaryCol}>
+              <Text style={styles.summaryTitle}>Academic Term</Text>
+              <Text style={styles.summaryDesc}>
+                {totalDays > 0 ? `${totalDays} Recorded Working Days` : 'Synchronizing records...'}
+              </Text>
+              <View style={styles.statusIndicatorRow}>
+                <View style={[styles.statusDot, { backgroundColor: Number(attendancePercentage) >= 85 ? '#10B981' : '#F59E0B' }]} />
+                <Text style={styles.statusIndicatorText}>
+                  {Number(attendancePercentage) >= 85 ? 'Eligible for Examinations' : 'Review Required'}
+                </Text>
+              </View>
+            </View>
           </View>
 
-          <View style={styles.statsGrid}>
-            <View style={styles.statBox}>
-              <Text style={[styles.statCount, { color: '#10B981' }]}>19</Text>
+          {/* Real Live Stats Counters */}
+          <View style={styles.statsRow}>
+            <View style={[styles.statBox, { borderLeftColor: '#10B981' }]}>
+              <Text style={[styles.statNumber, { color: '#059669' }]}>{presentCount}</Text>
               <Text style={styles.statLabel}>Present</Text>
             </View>
-            <View style={styles.statBox}>
-              <Text style={[styles.statCount, { color: '#EF4444' }]}>1</Text>
+
+            <View style={[styles.statBox, { borderLeftColor: '#EF4444' }]}>
+              <Text style={[styles.statNumber, { color: '#DC2626' }]}>{absentCount}</Text>
               <Text style={styles.statLabel}>Absent</Text>
             </View>
-            <View style={styles.statBox}>
-              <Text style={[styles.statCount, { color: '#3B82F6' }]}>1</Text>
+
+            <View style={[styles.statBox, { borderLeftColor: '#3B82F6' }]}>
+              <Text style={[styles.statNumber, { color: '#2563EB' }]}>{odCount}</Text>
               <Text style={styles.statLabel}>On Duty</Text>
             </View>
-            <View style={styles.statBox}>
-              <Text style={[styles.statCount, { color: '#F59E0B' }]}>1</Text>
+
+            <View style={[styles.statBox, { borderLeftColor: '#F59E0B' }]}>
+              <Text style={[styles.statNumber, { color: '#D97706' }]}>{halfDayCount}</Text>
               <Text style={styles.statLabel}>Half Day</Text>
             </View>
           </View>
         </View>
 
-        {/* Attendance Log Section */}
-        <Text style={styles.sectionTitle}>Daily Log</Text>
+        {/* Filter Pills */}
+        <View style={styles.filterRow}>
+          {(['All', 'Present', 'Absent', 'OD'] as const).map(tab => {
+            const active = selectedFilter === tab;
+            return (
+              <TouchableOpacity
+                key={tab}
+                style={[styles.filterChip, active && styles.filterChipActive]}
+                onPress={() => setSelectedFilter(tab)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>
+                  {tab === 'All' ? `All (${totalDays})` :
+                   tab === 'Present' ? `Present (${presentCount})` :
+                   tab === 'Absent' ? `Absent (${absentCount})` : `OD (${odCount})`}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
-        {attendanceList.map((item) => {
-          const colors = getStatusColor(item.status);
-          return (
-            <View key={item.id} style={styles.logCard}>
-              <View style={styles.logLeft}>
-                <Text style={styles.logDate}>{item.date}</Text>
-                <Text style={styles.logDay}>{item.day} • {item.session}</Text>
-                {item.remarks && <Text style={styles.logRemarks}>Note: {item.remarks}</Text>}
+        {/* Real Daily Attendance List */}
+        <View style={styles.listHeaderRow}>
+          <Text style={styles.listHeaderTitle}>Daily Verification Log</Text>
+          <Text style={styles.listHeaderSub}>Live Cloud Sync</Text>
+        </View>
+
+        {loading ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="small" color="#2563EB" />
+            <Text style={styles.loadingText}>Fetching database attendance records...</Text>
+          </View>
+        ) : filteredRecords.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <CalendarIcon size={38} color="#94A3B8" />
+            <Text style={styles.emptyTitle}>No Attendance Records</Text>
+            <Text style={styles.emptySub}>No attendance entries match this filter.</Text>
+          </View>
+        ) : (
+          filteredRecords.map(item => {
+            const badge = getStatusBadge(item.status);
+            return (
+              <View key={item.id} style={styles.logCard}>
+                <View style={styles.logLeft}>
+                  <View style={styles.dateBadge}>
+                    <Text style={styles.dateDay}>{item.day}</Text>
+                    <Text style={styles.dateText}>{item.date.split(' ')[0]}</Text>
+                  </View>
+                  <View style={styles.logInfo}>
+                    <Text style={styles.logFullDate}>{item.date}</Text>
+                    <Text style={styles.logSession}>{item.session} Session</Text>
+                    {item.remarks ? (
+                      <Text style={styles.logRemarks}>Note: {item.remarks}</Text>
+                    ) : null}
+                  </View>
+                </View>
+
+                <View style={[styles.statusBadge, { backgroundColor: badge.bg, borderColor: badge.border }]}>
+                  <View style={[styles.badgeDot, { backgroundColor: badge.dot }]} />
+                  <Text style={[styles.statusBadgeText, { color: badge.text }]}>{item.status}</Text>
+                </View>
               </View>
-              <View style={[styles.statusBadge, { backgroundColor: colors.bg, borderColor: colors.border }]}>
-                <Text style={[styles.statusText, { color: colors.text }]}>{item.status}</Text>
-              </View>
-            </View>
-          );
-        })}
+            );
+          })
+        )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -175,160 +260,295 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  header: {
-    backgroundColor: '#1E293B',
+  pageHeader: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 24,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingBottom: 12,
+    backgroundColor: '#F8FAFC',
   },
-  headerTitle: {
-    color: '#FFFFFF',
-    fontSize: 22,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  pageTitle: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.5,
+  },
+  classPill: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  classPillText: {
+    color: '#2563EB',
     fontWeight: '700',
+    fontSize: 12,
   },
-  headerSubtitle: {
-    color: '#94A3B8',
+  pageSubtitle: {
     fontSize: 14,
+    color: '#64748B',
     marginTop: 4,
+    fontWeight: '500',
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  monthSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    paddingTop: 4,
+    paddingBottom: 125, // Extra clearance for floating bottom bar
   },
-  monthButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  monthButtonText: {
-    fontSize: 22,
-    color: '#475569',
-    fontWeight: 'bold',
-  },
-  monthText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
-  },
-  percentageCard: {
+  heroCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 22,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    elevation: 3,
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    marginBottom: 16,
+  },
+  heroTop: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  circleContainer: {
+    marginRight: 16,
   },
   percentageCircle: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    borderWidth: 6,
-    borderColor: '#10B981',
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 3,
+    borderColor: '#3B82F6',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-    backgroundColor: '#F0FDF4',
   },
   percentageNumber: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#065F46',
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#1E3A8A',
   },
   percentageLabel: {
-    fontSize: 11,
-    color: '#047857',
-    fontWeight: '600',
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#64748B',
     marginTop: 2,
+    textTransform: 'uppercase',
   },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    paddingTop: 16,
-  },
-  statBox: {
-    alignItems: 'center',
+  heroSummaryCol: {
     flex: 1,
   },
-  statCount: {
-    fontSize: 18,
-    fontWeight: '700',
+  summaryTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
   },
-  statLabel: {
-    fontSize: 12,
+  summaryDesc: {
+    fontSize: 13,
     color: '#64748B',
     marginTop: 2,
   },
-  sectionTitle: {
-    fontSize: 17,
+  statusIndicatorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  statusIndicatorText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#334155',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 14,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    marginHorizontal: 3,
+    borderLeftWidth: 3.5,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  statLabel: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: '#64748B',
+    marginTop: 2,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  filterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginRight: 8,
+  },
+  filterChipActive: {
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
+  },
+  filterChipText: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  filterChipTextActive: {
+    color: '#FFFFFF',
     fontWeight: '700',
-    color: '#1E293B',
+  },
+  listHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  listHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  listHeaderSub: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#2563EB',
+  },
+  loadingBox: {
+    padding: 30,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 8,
+  },
+  emptyCard: {
+    backgroundColor: '#FFFFFF',
+    padding: 36,
+    borderRadius: 20,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed',
+    marginTop: 10,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginTop: 12,
+  },
+  emptySub: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 4,
   },
   logCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 14,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     elevation: 1,
-    shadowColor: '#000',
+    shadowColor: '#0F172A',
     shadowOpacity: 0.03,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
   logLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
-    marginRight: 10,
   },
-  logDate: {
-    fontSize: 15,
+  dateBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  dateDay: {
+    fontSize: 10,
     fontWeight: '700',
-    color: '#1E293B',
-  },
-  logDay: {
-    fontSize: 13,
     color: '#64748B',
-    marginTop: 2,
+    textTransform: 'uppercase',
+  },
+  dateText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  logInfo: {
+    flex: 1,
+  },
+  logFullDate: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  logSession: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 1,
   },
   logRemarks: {
-    fontSize: 12,
-    color: '#F59E0B',
-    marginTop: 4,
-    fontStyle: 'italic',
+    fontSize: 11,
+    color: '#2563EB',
+    marginTop: 2,
+    fontWeight: '500',
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
     borderWidth: 1,
   },
-  statusText: {
-    fontSize: 13,
-    fontWeight: '600',
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 5,
+  },
+  statusBadgeText: {
+    fontSize: 11.5,
+    fontWeight: '700',
   },
 });
